@@ -28,7 +28,7 @@ class PhoneController extends AbstractController
     }
 
     /**
-     * @Route("/{id}, name="phone_show", methods={"GET"})
+     * @Route("/{id}", name="phone_show", methods={"GET"})
      * @param Phone $phone
      * @return Response
      */
