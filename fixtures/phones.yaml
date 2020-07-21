@@ -1,0 +1,15 @@
+App\Entity\Phone:
+    phone_{1..10}:
+        reference: "AZERTY"
+        brand : "SAMSUNG"
+        model: "GALAXY S10"
+        price: 999
+        processor: ""
+        screen: ""
+        camera: ""
+        ram: ""
+        network: ""
+        connectivity: ""
+        system: "Android"
+        autonomy: "24 heures"
+        dimensions: ""
