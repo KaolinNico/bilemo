@@ -31,7 +31,9 @@ class UserController extends AbstractController
             200,
             [],
             [
-                AbstractNormalizer::GROUPS => "users_list"
+                "groups" => [
+                    "users_list"
+                ]
             ]
         );
     }
@@ -48,9 +50,6 @@ class UserController extends AbstractController
             200,
             [],
             [
-                "circular_reference_handler" => function ($object) {
-                    return $object->getId();
-                },
                 "groups" => [
                     "user_show"
                 ]
@@ -91,10 +90,9 @@ class UserController extends AbstractController
             201,
             [],
             [
-                AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
-                    return $object->getId();
-                },
-                AbstractNormalizer::GROUPS => "user_show"
+                "groups" => [
+                    "user_show"
+                ]
             ]
         );
     }
@@ -135,13 +133,8 @@ class UserController extends AbstractController
             200,
             [],
             [
-                AbstractNormalizer::CIRCULAR_REFERENCE_HANDLER => function ($object) {
-                    return $object->getId();
-                },
-                AbstractNormalizer::GROUPS => [
-                    "groups" => [
-                        "user_show"
-                    ]
+                "groups" => [
+                    "user_show"
                 ]
             ]
         );

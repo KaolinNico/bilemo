@@ -15,41 +15,37 @@ class User
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     *
      * @Groups({"users_list", "user_show"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
-     *
      * @Groups({"users_list", "user_show"})
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
-     *
      * @Groups({"user_show"})
      */
     private $password;
 
     /**
      * @ORM\ManyToOne(targetEntity=Customer::class, inversedBy="users")
+     * @Groups({"user_show"})
      */
     private $customer;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     *
-     * @Groups({"user_show"})
+     * @Groups({"users_list", "user_show"})
      */
     private $firstname;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     *
-     * @Groups({"user_show"})
+     * @Groups({"users_list", "user_show"})
      */
     private $lastname;
 
