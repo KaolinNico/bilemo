@@ -3,3 +3,5 @@ App\Entity\User:
         email: "<email()>"
         password: "<md5()>"
         customer: "@customer"
+        firstname: "<firstname()>"
+        lastname: "<lastname()>"

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
@@ -14,16 +15,22 @@ class User
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     *
+     * @Groups({"users_list", "user_show"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
+     * @Groups({"users_list", "user_show"})
      */
     private $email;
 
     /**
      * @ORM\Column(type="string", length=255)
+     *
+     * @Groups({"user_show"})
      */
     private $password;
 
@@ -31,6 +38,20 @@ class User
      * @ORM\ManyToOne(targetEntity=Customer::class, inversedBy="users")
      */
     private $customer;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     *
+     * @Groups({"user_show"})
+     */
+    private $firstname;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     *
+     * @Groups({"user_show"})
+     */
+    private $lastname;
 
     public function getId(): ?int
     {
@@ -69,6 +90,30 @@ class User
     public function setCustomer(?Customer $customer): self
     {
         $this->customer = $customer;
+
+        return $this;
+    }
+
+    public function getFirstname(): ?string
+    {
+        return $this->firstname;
+    }
+
+    public function setFirstname(?string $firstname): self
+    {
+        $this->firstname = $firstname;
+
+        return $this;
+    }
+
+    public function getLastname(): ?string
+    {
+        return $this->lastname;
+    }
+
+    public function setLastname(?string $lastname): self
+    {
+        $this->lastname = $lastname;
 
         return $this;
     }
