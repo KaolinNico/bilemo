@@ -5,13 +5,17 @@ namespace App\Controller;
 use App\Entity\Phone;
 use App\Form\PhoneType;
 use App\Repository\PhoneRepository;
+use Nelmio\ApiDocBundle\Annotation\Security;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Swagger\Annotations as SWG;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/api/v1/phones")
+ * @SWG\Tag(name="Phones")
+ * @Security(name="Bearer")
  */
 class PhoneController extends AbstractApiController
 {
@@ -19,6 +23,11 @@ class PhoneController extends AbstractApiController
      * @Route("/", name="phones_list", methods={"GET"})
      * @param PhoneRepository $phoneRepository
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Return list of all phones",
+     * )
      */
     public function indexAction(PhoneRepository $phoneRepository) :Response
     {
@@ -32,6 +41,11 @@ class PhoneController extends AbstractApiController
      * @Route("/{id}", name="phone_show", methods={"GET"})
      * @param Phone $phone
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Return details for a phone",
+     * )
      */
     public function showAction(Phone $phone) :Response
     {
@@ -46,6 +60,11 @@ class PhoneController extends AbstractApiController
      * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=201,
+     *     description="Create a phone (Administrator only)",
+     * )
      */
     public function newAction(Request $request) :Response
     {
@@ -80,6 +99,11 @@ class PhoneController extends AbstractApiController
      * @param Request $request
      * @param Phone $phone
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Edit a phone (Administrator only)",
+     * )
      */
     public function editAction(Request $request, Phone $phone) :Response
     {
@@ -113,6 +137,11 @@ class PhoneController extends AbstractApiController
      * @param Request $request
      * @param Phone $phone
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Delete a phone (Administrator only)",
+     * )
      */
     public function deleteAction(Request $request, Phone $phone) :Response
     {

@@ -6,9 +6,8 @@ use App\Entity\Customer;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
+use Nelmio\ApiDocBundle\Annotation\Security;
 use Swagger\Annotations as SWG;
-use Symfony\Component\Form\Form;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -16,6 +15,8 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * @Route("/api/v1/users")
+ * @SWG\Tag(name="Users")
+ * @Security(name="Bearer")
  */
 class UserController extends AbstractApiController
 {
@@ -26,7 +27,7 @@ class UserController extends AbstractApiController
      *
      * @SWG\Response(
      *     response=200,
-     *     description="Returns user's list",
+     *     description="Return list of all users for a customer",
      * )
      */
     public function indexAction(UserRepository $userRepository) :Response
@@ -50,7 +51,7 @@ class UserController extends AbstractApiController
      *
      * @SWG\Response(
      *     response=200,
-     *     description="Returns an user",
+     *     description="Returns details for an user",
      * )
      */
     public function showAction(User $user) :Response
