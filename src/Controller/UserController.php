@@ -6,6 +6,9 @@ use App\Entity\Customer;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
+use Swagger\Annotations as SWG;
+use Symfony\Component\Form\Form;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,6 +23,11 @@ class UserController extends AbstractApiController
      * @Route("/", name="users_list", methods={"GET"})
      * @param UserRepository $userRepository
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Returns user's list",
+     * )
      */
     public function indexAction(UserRepository $userRepository) :Response
     {
@@ -39,6 +47,11 @@ class UserController extends AbstractApiController
      * @Route("/{id}", name="user_show", methods={"GET"})
      * @param User $user
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Returns an user",
+     * )
      */
     public function showAction(User $user) :Response
     {
@@ -63,6 +76,11 @@ class UserController extends AbstractApiController
      * @param Request $request
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=201,
+     *     description="Create new user",
+     * )
      */
     public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder) :Response
     {
@@ -105,6 +123,11 @@ class UserController extends AbstractApiController
      * @param Request $request
      * @param User $user
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Edit an user",
+     * )
      */
     public function editAction(Request $request, User $user) :Response
     {
@@ -148,6 +171,11 @@ class UserController extends AbstractApiController
      * @param Request $request
      * @param User $user
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Delete an user",
+     * )
      */
     public function deleteAction(Request $request, User $user) :Response
     {
