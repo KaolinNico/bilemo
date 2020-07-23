@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Customer;
 use App\Entity\User;
-use App\Form\UserTypeOld;
+use App\Form\UserType;
 use App\Repository\UserRepository;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormInterface;
@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 
 /**
  * @Route("/users")
@@ -27,7 +26,7 @@ class UserController extends AbstractController
     public function indexAction(UserRepository $userRepository) :Response
     {
         return $this->json(
-            $userRepository->findByCustomer(14),
+            $userRepository->findByCustomer(3),
             200,
             [],
             [
@@ -65,7 +64,7 @@ class UserController extends AbstractController
     public function newAction(Request $request) :Response
     {
         $user = new User();
-        $form = $this->createForm(UserTypeOld::class, $user);
+        $form = $this->createForm(UserType::class, $user);
 
         $data = json_decode($request->getContent(), true);
 
@@ -80,7 +79,7 @@ class UserController extends AbstractController
         }
 
         $customerRepository = $this->getDoctrine()->getRepository(Customer::class);
-        $user->setCustomer($customerRepository->find(14));
+        $user->setCustomer($customerRepository->find(3));
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
@@ -105,11 +104,11 @@ class UserController extends AbstractController
      */
     public function editAction(Request $request, User $user) :Response
     {
-        if ($user->getCustomer()->getId() !== 14) {
+        if ($user->getCustomer()->getId() !== 3) {
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 
-        $form = $this->createForm(UserTypeOld::class, $user);
+        $form = $this->createForm(UserType::class, $user);
 
         $data = json_decode($request->getContent(), true);
 
@@ -123,7 +122,7 @@ class UserController extends AbstractController
         }
 
         $customerRepository = $this->getDoctrine()->getRepository(Customer::class);
-        $user->setCustomer($customerRepository->find(14));
+        $user->setCustomer($customerRepository->find(3));
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
@@ -148,7 +147,7 @@ class UserController extends AbstractController
      */
     public function deleteAction(Request $request, User $user) :Response
     {
-        if ($user->getCustomer()->getId() !== 14) {
+        if ($user->getCustomer()->getId() !== 3) {
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 
