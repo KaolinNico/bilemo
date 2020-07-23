@@ -1,9 +1,12 @@
+parameters:
+    hash: $2y$10$hLCe35NdVzu7Pzvw5yB0oOQVyQEx39H9Jshk.k9t.JzCXOY1N9Z8.
+
 App\Entity\User:
     user_{1..10}:
         email: "<email()>"
         username: "user_<current()>"
         roles: "['ROLE_USER']"
-        password: "password"
+        password: "<{hash}>"
         customer: "@customer"
         firstname: "<firstname()>"
         lastname: "<lastname()>"

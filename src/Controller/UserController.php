@@ -26,7 +26,7 @@ class UserController extends AbstractController
     public function indexAction(UserRepository $userRepository) :Response
     {
         return $this->json(
-            $userRepository->findByCustomer(3),
+            $userRepository->findByCustomer(5),
             200,
             [],
             [
@@ -79,7 +79,7 @@ class UserController extends AbstractController
         }
 
         $customerRepository = $this->getDoctrine()->getRepository(Customer::class);
-        $user->setCustomer($customerRepository->find(3));
+        $user->setCustomer($customerRepository->find(5));
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
@@ -104,7 +104,7 @@ class UserController extends AbstractController
      */
     public function editAction(Request $request, User $user) :Response
     {
-        if ($user->getCustomer()->getId() !== 3) {
+        if ($user->getCustomer()->getId() !== 5) {
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 
@@ -122,7 +122,7 @@ class UserController extends AbstractController
         }
 
         $customerRepository = $this->getDoctrine()->getRepository(Customer::class);
-        $user->setCustomer($customerRepository->find(3));
+        $user->setCustomer($customerRepository->find(5));
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
@@ -147,7 +147,7 @@ class UserController extends AbstractController
      */
     public function deleteAction(Request $request, User $user) :Response
     {
-        if ($user->getCustomer()->getId() !== 3) {
+        if ($user->getCustomer()->getId() !== 5) {
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 
