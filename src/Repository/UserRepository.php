@@ -26,6 +26,6 @@ class UserRepository extends ServiceEntityRepository
             ->setParameter('id_customer', $id_customer)
             ->getQuery()
             ->getResult()
-        ;
+            ;
     }
 }

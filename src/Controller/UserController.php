@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Customer;
 use App\Entity\User;
-use App\Form\UserType;
+use App\Form\UserTypeOld;
 use App\Repository\UserRepository;
 use Symfony\Component\Form\Form;
 use Symfony\Component\Form\FormInterface;
@@ -65,7 +65,7 @@ class UserController extends AbstractController
     public function newAction(Request $request) :Response
     {
         $user = new User();
-        $form = $this->createForm(UserType::class, $user);
+        $form = $this->createForm(UserTypeOld::class, $user);
 
         $data = json_decode($request->getContent(), true);
 
@@ -109,7 +109,7 @@ class UserController extends AbstractController
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 
-        $form = $this->createForm(UserType::class, $user);
+        $form = $this->createForm(UserTypeOld::class, $user);
 
         $data = json_decode($request->getContent(), true);
 
