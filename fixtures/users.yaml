@@ -7,6 +7,6 @@ App\Entity\User:
         username: "user_<current()>"
         roles: "['ROLE_USER']"
         password: "<{hash}>"
-        customer: "@customer"
+        customer: "@customer_*"
         firstname: "<firstname()>"
         lastname: "<lastname()>"

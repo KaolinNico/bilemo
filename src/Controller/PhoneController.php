@@ -5,18 +5,15 @@ namespace App\Controller;
 use App\Entity\Phone;
 use App\Form\PhoneType;
 use App\Repository\PhoneRepository;
-use phpDocumentor\Reflection\Types\This;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\Form;
-use Symfony\Component\Form\FormInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/phones")
+ * @Route("/api/v1/phones")
  */
-class PhoneController extends AbstractController
+class PhoneController extends AbstractApiController
 {
     /**
      * @Route("/", name="phones_list", methods={"GET"})
@@ -46,6 +43,7 @@ class PhoneController extends AbstractController
 
     /**
      * @Route("/", name="phone_new", methods={"POST"})
+     * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @return Response
      */
@@ -78,6 +76,7 @@ class PhoneController extends AbstractController
 
     /**
      * @Route("/{id}", name="phone_edit", methods={"PUT"})
+     * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @param Phone $phone
      * @return Response
@@ -110,6 +109,7 @@ class PhoneController extends AbstractController
 
     /**
      * @Route("/{id}", name="phone_delete", methods={"DELETE"})
+     * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @param Phone $phone
      * @return Response
@@ -124,39 +124,5 @@ class PhoneController extends AbstractController
             ['success' => true],
             200
         );
-    }
-
-    public function serializeErrors(Form $form): array
-    {
-        $errors = [];
-        foreach ($form->getErrors() as $formError) {
-            $errors['globals'][] = $formError->getMessage();
-        }
-        foreach ($form->all() as $childForm) {
-            if ($childForm instanceof FormInterface) {
-                if ($childErrors = $this->subSerializeErrors($childForm)) {
-                    $errors['fields'][$childForm->getName()] = $childErrors;
-                }
-            }
-        }
-
-        return $errors;
-    }
-
-    private function subSerializeErrors(FormInterface $form): array
-    {
-        $errors = [];
-        foreach ($form->getErrors() as $error) {
-            $errors[] = $error->getMessage();
-        }
-        foreach ($form->all() as $childForm) {
-            if ($childForm instanceof FormInterface) {
-                if ($childErrors = $this->serializeErrors($childForm)) {
-                    $errors[$childForm->getName()] = $childErrors;
-                }
-            }
-        }
-
-        return $errors;
     }
 }
