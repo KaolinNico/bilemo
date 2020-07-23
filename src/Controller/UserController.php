@@ -6,17 +6,15 @@ use App\Entity\Customer;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
-use Symfony\Component\Form\Form;
-use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
- * @Route("/users")
+ * @Route("/api/v1/users")
  */
-class UserController extends AbstractController
+class UserController extends AbstractApiController
 {
     /**
      * @Route("/", name="users_list", methods={"GET"})
@@ -26,7 +24,7 @@ class UserController extends AbstractController
     public function indexAction(UserRepository $userRepository) :Response
     {
         return $this->json(
-            $userRepository->findByCustomer(5),
+            $userRepository->findByCustomer($this->getUser()->getCustomer()->getId()),
             200,
             [],
             [
@@ -44,6 +42,10 @@ class UserController extends AbstractController
      */
     public function showAction(User $user) :Response
     {
+        if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
+            return $this->json(['message' => '400 - Bad Request'], 400);
+        }
+
         return $this->json(
             $user,
             200,
@@ -59,9 +61,10 @@ class UserController extends AbstractController
     /**
      * @Route("/", name="user_new", methods={"POST"})
      * @param Request $request
+     * @param UserPasswordEncoderInterface $passwordEncoder
      * @return Response
      */
-    public function newAction(Request $request) :Response
+    public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder) :Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -78,8 +81,9 @@ class UserController extends AbstractController
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 
-        $customerRepository = $this->getDoctrine()->getRepository(Customer::class);
-        $user->setCustomer($customerRepository->find(5));
+        $user->setPassword($passwordEncoder->encodePassword($user, $user->getPlainPassword()));
+        $user->setCustomer($this->getUser()->getCustomer());
+        $user->setRoles(['ROLE_USER']);
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
@@ -104,7 +108,7 @@ class UserController extends AbstractController
      */
     public function editAction(Request $request, User $user) :Response
     {
-        if ($user->getCustomer()->getId() !== 5) {
+        if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 
@@ -147,7 +151,7 @@ class UserController extends AbstractController
      */
     public function deleteAction(Request $request, User $user) :Response
     {
-        if ($user->getCustomer()->getId() !== 5) {
+        if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 
@@ -159,39 +163,5 @@ class UserController extends AbstractController
             ['success' => true],
             200
         );
-    }
-
-    public function serializeErrors(Form $form): array
-    {
-        $errors = [];
-        foreach ($form->getErrors() as $formError) {
-            $errors['globals'][] = $formError->getMessage();
-        }
-        foreach ($form->all() as $childForm) {
-            if ($childForm instanceof FormInterface) {
-                if ($childErrors = $this->subSerializeErrors($childForm)) {
-                    $errors['fields'][$childForm->getName()] = $childErrors;
-                }
-            }
-        }
-
-        return $errors;
-    }
-
-    private function subSerializeErrors(FormInterface $form): array
-    {
-        $errors = [];
-        foreach ($form->getErrors() as $error) {
-            $errors[] = $error->getMessage();
-        }
-        foreach ($form->all() as $childForm) {
-            if ($childForm instanceof FormInterface) {
-                if ($childErrors = $this->serializeErrors($childForm)) {
-                    $errors[$childForm->getName()] = $childErrors;
-                }
-            }
-        }
-
-        return $errors;
     }
 }
