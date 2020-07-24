@@ -5,13 +5,18 @@ namespace App\Controller;
 use App\Entity\Phone;
 use App\Form\PhoneType;
 use App\Repository\PhoneRepository;
+use Nelmio\ApiDocBundle\Annotation\Security;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Swagger\Annotations as SWG;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/api/v1/phones")
+ * @SWG\Tag(name="Phones")
+ * @Security(name="Bearer")
  */
 class PhoneController extends AbstractApiController
 {
@@ -19,6 +24,15 @@ class PhoneController extends AbstractApiController
      * @Route("/", name="phones_list", methods={"GET"})
      * @param PhoneRepository $phoneRepository
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Return list of all phones",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=Phone::class))
+     *     )
+     * )
      */
     public function indexAction(PhoneRepository $phoneRepository) :Response
     {
@@ -32,6 +46,21 @@ class PhoneController extends AbstractApiController
      * @Route("/{id}", name="phone_show", methods={"GET"})
      * @param Phone $phone
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Return details for a phone",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=Phone::class))
+     *     )
+     * ),
+     * @SWG\Parameter(
+     *     in="path",
+     *     name="id",
+     *     type="integer",
+     *     description="phone id"
+     * )
      */
     public function showAction(Phone $phone) :Response
     {
@@ -46,6 +75,15 @@ class PhoneController extends AbstractApiController
      * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=201,
+     *     description="Phone created (Administrator only)",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=Phone::class))
+     *     )
+     * )
      */
     public function newAction(Request $request) :Response
     {
@@ -80,6 +118,21 @@ class PhoneController extends AbstractApiController
      * @param Request $request
      * @param Phone $phone
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Phone edited (Administrator only)",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=Phone::class))
+     *     )
+     * ),
+     * @SWG\Parameter(
+     *     in="path",
+     *     name="id",
+     *     type="integer",
+     *     description="phone id"
+     * )
      */
     public function editAction(Request $request, Phone $phone) :Response
     {
@@ -113,6 +166,20 @@ class PhoneController extends AbstractApiController
      * @param Request $request
      * @param Phone $phone
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Phone deleted (Administrator only)",
+     *     @SWG\Schema(
+     *         @SWG\Property(property="success", type="boolean", description="return success"),
+     *     )
+     * ),
+     * @SWG\Parameter(
+     *     in="path",
+     *     name="id",
+     *     type="integer",
+     *     description="phone id"
+     * )
      */
     public function deleteAction(Request $request, Phone $phone) :Response
     {

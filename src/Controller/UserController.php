@@ -6,6 +6,9 @@ use App\Entity\Customer;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
+use Nelmio\ApiDocBundle\Annotation\Security;
+use Nelmio\ApiDocBundle\Annotation\Model;
+use Swagger\Annotations as SWG;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -13,6 +16,8 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 /**
  * @Route("/api/v1/users")
+ * @SWG\Tag(name="Users")
+ * @Security(name="Bearer")
  */
 class UserController extends AbstractApiController
 {
@@ -20,6 +25,15 @@ class UserController extends AbstractApiController
      * @Route("/", name="users_list", methods={"GET"})
      * @param UserRepository $userRepository
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Return list of all users for a customer",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=User::class, groups={"users_list"}))
+     *     )
+     * )
      */
     public function indexAction(UserRepository $userRepository) :Response
     {
@@ -39,6 +53,21 @@ class UserController extends AbstractApiController
      * @Route("/{id}", name="user_show", methods={"GET"})
      * @param User $user
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Returns details for an user",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=User::class, groups={"user_show"}))
+     *     )
+     * ),
+     * @SWG\Parameter(
+     *     in="path",
+     *     name="id",
+     *     type="integer",
+     *     description="user id"
+     * )
      */
     public function showAction(User $user) :Response
     {
@@ -63,6 +92,15 @@ class UserController extends AbstractApiController
      * @param Request $request
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=201,
+     *     description="Create new user",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=User::class, groups={"user_show"}))
+     *     )
+     * )
      */
     public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder) :Response
     {
@@ -105,6 +143,21 @@ class UserController extends AbstractApiController
      * @param Request $request
      * @param User $user
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Edit an user",
+     *     @SWG\Schema(
+     *         type="array",
+     *         @SWG\Items(ref=@Model(type=User::class, groups={"user_show"}))
+     *     )
+     * ),
+     * @SWG\Parameter(
+     *     in="path",
+     *     name="id",
+     *     type="integer",
+     *     description="user id"
+     * )
      */
     public function editAction(Request $request, User $user) :Response
     {
@@ -148,6 +201,20 @@ class UserController extends AbstractApiController
      * @param Request $request
      * @param User $user
      * @return Response
+     *
+     * @SWG\Response(
+     *     response=200,
+     *     description="Delete an user",
+     *     @SWG\Schema(
+     *         @SWG\Property(property="success", type="boolean", description="return success"),
+     *     )
+     * ),
+     * @SWG\Parameter(
+     *     in="path",
+     *     name="id",
+     *     type="integer",
+     *     description="user id"
+     * )
      */
     public function deleteAction(Request $request, User $user) :Response
     {
