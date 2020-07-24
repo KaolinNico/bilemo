@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Phone;
+use App\Exception\BadFormException;
+use App\Exception\BadJsonException;
 use App\Form\PhoneType;
 use App\Repository\PhoneRepository;
 use Nelmio\ApiDocBundle\Annotation\Security;
@@ -84,6 +86,8 @@ class PhoneController extends AbstractApiController
      *         @SWG\Items(ref=@Model(type=Phone::class))
      *     )
      * )
+     * @throws BadFormException
+     * @throws BadJsonException
      */
     public function newAction(Request $request) :Response
     {
@@ -93,13 +97,13 @@ class PhoneController extends AbstractApiController
         $data = json_decode($request->getContent(), true);
 
         if (!$data) {
-            return $this->json(['message' => 'Invalid Json'], 400);
+            throw new BadJsonException();
         }
 
         $form->submit($data);
 
         if (!($form->isSubmitted() && $form->isValid())) {
-            return $this->json(['message' => '400 - Bad Request'], 400);
+            throw new BadFormException($form);
         }
 
         $entityManager = $this->getDoctrine()->getManager();
@@ -133,6 +137,8 @@ class PhoneController extends AbstractApiController
      *     type="integer",
      *     description="phone id"
      * )
+     * @throws BadFormException
+     * @throws BadJsonException
      */
     public function editAction(Request $request, Phone $phone) :Response
     {
@@ -141,13 +147,13 @@ class PhoneController extends AbstractApiController
         $data = json_decode($request->getContent(), true);
 
         if (!$data) {
-            return $this->json(['message' => 'Invalid Json'], 400);
+            throw new BadJsonException();
         }
 
         $form->submit($data);
 
         if (!($form->isSubmitted() && $form->isValid())) {
-            return $this->json($this->serializeErrors($form), 400);
+            throw new BadFormException($form);
         }
 
         $entityManager = $this->getDoctrine()->getManager();
