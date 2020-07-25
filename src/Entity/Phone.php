@@ -4,9 +4,25 @@ namespace App\Entity;
 
 use App\Repository\PhoneRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Hateoas\Configuration\Annotation as Hateoas;
 
 /**
  * @ORM\Entity(repositoryClass=PhoneRepository::class)
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "phone_show",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute=true,
+ *      )
+ * )
+ * @Hateoas\Relation(
+ *      "list",
+ *      href = @Hateoas\Route(
+ *          "phones_list",
+ *          absolute=true,
+ *      )
+ * )
  */
 class Phone
 {
