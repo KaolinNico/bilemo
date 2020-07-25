@@ -48,13 +48,13 @@ class UserController extends AbstractApiController
      */
     public function indexAction(UserRepository $userRepository, CacheInterface $cache, SerializerInterface $serializer): Response
     {
-        $key = "users_list_" . $this->getUser()->getCustomer()->getId();
+        $key = "users_list_" . $this->getUser()->getId();
         return $cache->get($key, function (ItemInterface $item) use ($userRepository, $serializer) {
             $item->expiresAfter(DateInterval::createFromDateString('1 hour'));
             $context = SerializationContext::create()->setGroups(['users_list']);
 
             $data = $serializer->serialize(
-                $userRepository->findByCustomer($this->getUser()->getCustomer()->getId()),
+                $userRepository->findByCustomer($this->getUser()->getId()),
                     'json',
                     $context
             );
@@ -93,7 +93,7 @@ class UserController extends AbstractApiController
         return $cache->get($key, function (ItemInterface $item) use ($user, $serializer) {
             $item->expiresAfter(DateInterval::createFromDateString('1 hour'));
 
-            if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
+            if ($user->getCustomer()->getId() !== $this->getUser()->getId()) {
                 return $this->json(['message' => '400 - Bad Request'], 400);
             }
 
@@ -147,13 +147,13 @@ class UserController extends AbstractApiController
         }
 
         $user->setPassword($passwordEncoder->encodePassword($user, $user->getPlainPassword()));
-        $user->setCustomer($this->getUser()->getCustomer());
+        $user->setCustomer($this->getUser());
         $user->setRoles(['ROLE_USER']);
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
 
-        $cache->delete("users_list_" . $this->getUser()->getCustomer()->getId());
+        $cache->delete("users_list_" . $this->getUser()->getId());
 
         $context = SerializationContext::create()->setGroups(['user_show']);
 
@@ -193,7 +193,7 @@ class UserController extends AbstractApiController
      */
     public function editAction(Request $request, User $user, CacheInterface $cache, SerializerInterface $serializer): Response
     {
-        if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
+        if ($user->getCustomer()->getId() !== $this->getUser()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 
@@ -211,7 +211,7 @@ class UserController extends AbstractApiController
         }
 
         $customerRepository = $this->getDoctrine()->getRepository(Customer::class);
-        $user->setCustomer($customerRepository->find($this->getUser()->getCustomer()->getId()));
+        $user->setCustomer($customerRepository->find($this->getUser()->getId()));
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
@@ -254,7 +254,7 @@ class UserController extends AbstractApiController
      */
     public function deleteAction(Request $request, User $user, CacheInterface $cache, SerializerInterface $serializer): Response
     {
-        if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
+        if ($user->getCustomer()->getId() !== $this->getUser()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
         }
 

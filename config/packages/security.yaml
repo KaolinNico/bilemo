@@ -1,13 +1,13 @@
 security:
     encoders:
-        App\Entity\User:
+        App\Entity\Customer:
             algorithm: bcrypt
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
         # used to reload user from session & other features (e.g. switch_user)
         app_user_provider:
             entity:
-                class: App\Entity\User
+                class: App\Entity\Customer
                 property: username
     firewalls:
         dev:
