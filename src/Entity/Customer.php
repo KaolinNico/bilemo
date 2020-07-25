@@ -7,11 +7,15 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\Serializer\Annotation\Groups;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=CustomerRepository::class)
+ * @UniqueEntity("username")
  */
-class Customer
+class Customer implements UserInterface
 {
     /**
      * @ORM\Id()
@@ -44,6 +48,32 @@ class Customer
      * @Groups({"user_show"})
      */
     private $city;
+
+    /**
+     * @Assert\NotBlank()
+     * @ORM\Column(type="string", length=180, unique=true)
+     * @Groups({"users_list", "user_show"})
+     */
+    private $username;
+
+    /**
+     * @Assert\NotBlank()
+     * @Assert\Length(max=4096)
+     */
+    private $plainPassword;
+
+    /**
+     * The below length depends on the "algorithm" you use for encoding
+     * the password, but this works well with bcrypt.
+     *
+     * @ORM\Column(type="string", length=64)
+     */
+    private $password;
+
+    /**
+     * @ORM\Column(type="json")
+     */
+    private $roles = [];
 
     /**
      * @ORM\OneToMany(targetEntity=User::class, mappedBy="customer")
@@ -137,5 +167,78 @@ class Customer
         }
 
         return $this;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUsername(): string
+    {
+        return (string) $this->username;
+    }
+
+    public function setUsername(?string $username): self
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function getPlainPassword()
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword($password)
+    {
+        $this->plainPassword = $password;
+    }
+
+    public function getPassword()
+    {
+        return $this->password;
+    }
+
+    public function setPassword($password)
+    {
+        $this->password = $password;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function getSalt()
+    {
+        // not needed for apps that do not check user passwords
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials()
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 }
