@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Customer;
 use App\Entity\User;
+use App\Exception\BadFormException;
+use App\Exception\BadJsonException;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use Nelmio\ApiDocBundle\Annotation\Security;
@@ -101,6 +103,8 @@ class UserController extends AbstractApiController
      *         @SWG\Items(ref=@Model(type=User::class, groups={"user_show"}))
      *     )
      * )
+     * @throws BadJsonException
+     * @throws BadFormException
      */
     public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder) :Response
     {
@@ -110,13 +114,13 @@ class UserController extends AbstractApiController
         $data = json_decode($request->getContent(), true);
 
         if (!$data) {
-            return $this->json(['message' => 'Invalid Json'], 400);
+            throw new BadJsonException();
         }
 
         $form->submit($data);
 
         if (!($form->isSubmitted() && $form->isValid())) {
-            return $this->json(['message' => '400 - Bad Request'], 400);
+            throw new BadFormException($form);
         }
 
         $user->setPassword($passwordEncoder->encodePassword($user, $user->getPlainPassword()));
@@ -158,6 +162,8 @@ class UserController extends AbstractApiController
      *     type="integer",
      *     description="user id"
      * )
+     * @throws BadJsonException
+     * @throws BadFormException
      */
     public function editAction(Request $request, User $user) :Response
     {
@@ -170,12 +176,12 @@ class UserController extends AbstractApiController
         $data = json_decode($request->getContent(), true);
 
         if (!$data) {
-            return $this->json(['message' => 'Invalid Json'], 400);
+            throw new BadJsonException();
         }
 
         $form->submit($data);
         if (!($form->isSubmitted() && $form->isValid())) {
-            return $this->json($this->serializeErrors($form), 400);
+            throw new BadFormException($form);
         }
 
         $customerRepository = $this->getDoctrine()->getRepository(Customer::class);

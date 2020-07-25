@@ -25,3 +25,14 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Listener\Kernel\ExceptionListener:
+        arguments:
+            $normalizers: !tagged { tag: 'app.normalizer' }
+            $exceptionDataCollector: '@data_collector.exception'
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception}
+
+    App\Normalizer\:
+        resource: '../src/Normalizer'
+        tags: ['app.normalizer']

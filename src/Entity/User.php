@@ -4,14 +4,14 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
+ * @UniqueEntity("username")
  */
 class User implements UserInterface
 {
@@ -24,6 +24,7 @@ class User implements UserInterface
     private $id;
 
     /**
+     * @Assert\NotBlank()
      * @ORM\Column(type="string", length=180, unique=true)
      * @Groups({"users_list", "user_show"})
      */
@@ -35,6 +36,7 @@ class User implements UserInterface
     private $roles = [];
 
     /**
+     * @Assert\NotBlank()
      * @ORM\Column(type="string", length=255)
      * @Groups({"users_list", "user_show"})
      */
