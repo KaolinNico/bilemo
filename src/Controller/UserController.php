@@ -8,13 +8,17 @@ use App\Exception\BadFormException;
 use App\Exception\BadJsonException;
 use App\Form\UserType;
 use App\Repository\UserRepository;
+use DateInterval;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Nelmio\ApiDocBundle\Annotation\Model;
+use Psr\Cache\InvalidArgumentException;
 use Swagger\Annotations as SWG;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @Route("/api/v1/users")
@@ -26,8 +30,10 @@ class UserController extends AbstractApiController
     /**
      * @Route("/", name="users_list", methods={"GET"})
      * @param UserRepository $userRepository
+     * @param CacheInterface $cache
      * @return Response
      *
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=200,
      *     description="Return list of all users for a customer",
@@ -37,25 +43,32 @@ class UserController extends AbstractApiController
      *     )
      * )
      */
-    public function indexAction(UserRepository $userRepository) :Response
+    public function indexAction(UserRepository $userRepository, CacheInterface $cache): Response
     {
-        return $this->json(
-            $userRepository->findByCustomer($this->getUser()->getCustomer()->getId()),
-            200,
-            [],
-            [
-                "groups" => [
-                    "users_list"
+        $key = "users_list_" . $this->getUser()->getCustomer()->getId();
+        return $cache->get($key, function (ItemInterface $item) use ($userRepository) {
+            $item->expiresAfter(DateInterval::createFromDateString('1 hour'));
+            return $this->json(
+                $userRepository->findByCustomer($this->getUser()->getCustomer()->getId()),
+                200,
+                [],
+                [
+                    "groups" => [
+                        "users_list"
+                    ]
                 ]
-            ]
-        );
+            );
+        });
+
     }
 
     /**
      * @Route("/{id}", name="user_show", methods={"GET"})
      * @param User $user
+     * @param CacheInterface $cache
      * @return Response
      *
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=200,
      *     description="Returns details for an user",
@@ -71,30 +84,40 @@ class UserController extends AbstractApiController
      *     description="user id"
      * )
      */
-    public function showAction(User $user) :Response
+    public function showAction(User $user, CacheInterface $cache): Response
     {
-        if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
-            return $this->json(['message' => '400 - Bad Request'], 400);
-        }
+        $key = "user_" . $user->getId();
+        return $cache->get($key, function (ItemInterface $item) use ($user) {
+            $item->expiresAfter(DateInterval::createFromDateString('1 hour'));
 
-        return $this->json(
-            $user,
-            200,
-            [],
-            [
-                "groups" => [
-                    "user_show"
+            if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
+                return $this->json(['message' => '400 - Bad Request'], 400);
+            }
+
+            return $this->json(
+                $user,
+                200,
+                [],
+                [
+                    "groups" => [
+                        "user_show"
+                    ]
                 ]
-            ]
-        );
+            );
+        });
+
     }
 
     /**
      * @Route("/", name="user_new", methods={"POST"})
      * @param Request $request
      * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param CacheInterface $cache
      * @return Response
      *
+     * @throws BadFormException
+     * @throws BadJsonException
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=201,
      *     description="Create new user",
@@ -103,10 +126,8 @@ class UserController extends AbstractApiController
      *         @SWG\Items(ref=@Model(type=User::class, groups={"user_show"}))
      *     )
      * )
-     * @throws BadJsonException
-     * @throws BadFormException
      */
-    public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder) :Response
+    public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder, CacheInterface $cache): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -130,6 +151,8 @@ class UserController extends AbstractApiController
         $entityManager->persist($user);
         $entityManager->flush();
 
+        $cache->delete("users_list_" . $this->getUser()->getCustomer()->getId());
+
         return $this->json(
             $user,
             201,
@@ -146,8 +169,12 @@ class UserController extends AbstractApiController
      * @Route("/{id}", name="user_edit", methods={"PUT"})
      * @param Request $request
      * @param User $user
+     * @param CacheInterface $cache
      * @return Response
      *
+     * @throws BadFormException
+     * @throws BadJsonException
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=200,
      *     description="Edit an user",
@@ -162,10 +189,8 @@ class UserController extends AbstractApiController
      *     type="integer",
      *     description="user id"
      * )
-     * @throws BadJsonException
-     * @throws BadFormException
      */
-    public function editAction(Request $request, User $user) :Response
+    public function editAction(Request $request, User $user, CacheInterface $cache): Response
     {
         if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
@@ -185,10 +210,13 @@ class UserController extends AbstractApiController
         }
 
         $customerRepository = $this->getDoctrine()->getRepository(Customer::class);
-        $user->setCustomer($customerRepository->find(5));
+        $user->setCustomer($customerRepository->find($this->getUser()->getCustomer()->getId()));
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
+
+        $cache->delete("users_list_" . $user->getCustomer()->getId());
+        $cache->delete("user_" . $user->getId());
 
         return $this->json(
             $user,
@@ -206,6 +234,7 @@ class UserController extends AbstractApiController
      * @Route("/{id}", name="user_delete", methods={"DELETE"})
      * @param Request $request
      * @param User $user
+     * @param CacheInterface $cache
      * @return Response
      *
      * @SWG\Response(
@@ -221,8 +250,9 @@ class UserController extends AbstractApiController
      *     type="integer",
      *     description="user id"
      * )
+     * @throws InvalidArgumentException
      */
-    public function deleteAction(Request $request, User $user) :Response
+    public function deleteAction(Request $request, User $user, CacheInterface $cache): Response
     {
         if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
@@ -231,6 +261,9 @@ class UserController extends AbstractApiController
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->remove($user);
         $entityManager->flush();
+
+        $cache->delete("users_list_" . $user->getCustomer()->getId());
+        $cache->delete("user_" . $user->getId());
 
         return $this->json(
             ['success' => true],
