@@ -9,6 +9,8 @@ use App\Exception\BadJsonException;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use DateInterval;
+use JMS\Serializer\SerializationContext;
+use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Psr\Cache\InvalidArgumentException;
@@ -31,6 +33,7 @@ class UserController extends AbstractApiController
      * @Route("/", name="users_list", methods={"GET"})
      * @param UserRepository $userRepository
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
      * @throws InvalidArgumentException
@@ -43,21 +46,20 @@ class UserController extends AbstractApiController
      *     )
      * )
      */
-    public function indexAction(UserRepository $userRepository, CacheInterface $cache): Response
+    public function indexAction(UserRepository $userRepository, CacheInterface $cache, SerializerInterface $serializer): Response
     {
         $key = "users_list_" . $this->getUser()->getCustomer()->getId();
-        return $cache->get($key, function (ItemInterface $item) use ($userRepository) {
+        return $cache->get($key, function (ItemInterface $item) use ($userRepository, $serializer) {
             $item->expiresAfter(DateInterval::createFromDateString('1 hour'));
-            return $this->json(
+            $context = SerializationContext::create()->setGroups(['users_list']);
+
+            $data = $serializer->serialize(
                 $userRepository->findByCustomer($this->getUser()->getCustomer()->getId()),
-                200,
-                [],
-                [
-                    "groups" => [
-                        "users_list"
-                    ]
-                ]
+                    'json',
+                    $context
             );
+
+            return new Response($data, 200);
         });
 
     }
@@ -66,6 +68,7 @@ class UserController extends AbstractApiController
      * @Route("/{id}", name="user_show", methods={"GET"})
      * @param User $user
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
      * @throws InvalidArgumentException
@@ -84,26 +87,24 @@ class UserController extends AbstractApiController
      *     description="user id"
      * )
      */
-    public function showAction(User $user, CacheInterface $cache): Response
+    public function showAction(User $user, CacheInterface $cache, SerializerInterface $serializer): Response
     {
         $key = "user_" . $user->getId();
-        return $cache->get($key, function (ItemInterface $item) use ($user) {
+        return $cache->get($key, function (ItemInterface $item) use ($user, $serializer) {
             $item->expiresAfter(DateInterval::createFromDateString('1 hour'));
 
             if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
                 return $this->json(['message' => '400 - Bad Request'], 400);
             }
 
-            return $this->json(
+            $context = SerializationContext::create()->setGroups(['user_show']);
+            $data = $serializer->serialize(
                 $user,
-                200,
-                [],
-                [
-                    "groups" => [
-                        "user_show"
-                    ]
-                ]
+                'json',
+                $context
             );
+
+            return new Response($data, 200);
         });
 
     }
@@ -113,6 +114,7 @@ class UserController extends AbstractApiController
      * @param Request $request
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
      * @throws BadFormException
@@ -127,7 +129,7 @@ class UserController extends AbstractApiController
      *     )
      * )
      */
-    public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder, CacheInterface $cache): Response
+    public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder, CacheInterface $cache, SerializerInterface $serializer): Response
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -153,16 +155,14 @@ class UserController extends AbstractApiController
 
         $cache->delete("users_list_" . $this->getUser()->getCustomer()->getId());
 
-        return $this->json(
+        $context = SerializationContext::create()->setGroups(['user_show']);
+
+        $data = $serializer->serialize(
             $user,
-            201,
-            [],
-            [
-                "groups" => [
-                    "user_show"
-                ]
-            ]
+            'json',
+            $context
         );
+        return new Response($data, 201);
     }
 
     /**
@@ -170,6 +170,7 @@ class UserController extends AbstractApiController
      * @param Request $request
      * @param User $user
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
      * @throws BadFormException
@@ -190,7 +191,7 @@ class UserController extends AbstractApiController
      *     description="user id"
      * )
      */
-    public function editAction(Request $request, User $user, CacheInterface $cache): Response
+    public function editAction(Request $request, User $user, CacheInterface $cache, SerializerInterface $serializer): Response
     {
         if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
@@ -218,16 +219,14 @@ class UserController extends AbstractApiController
         $cache->delete("users_list_" . $user->getCustomer()->getId());
         $cache->delete("user_" . $user->getId());
 
-        return $this->json(
+        $context = SerializationContext::create()->setGroups(['user_show']);
+        $data = $serializer->serialize(
             $user,
-            200,
-            [],
-            [
-                "groups" => [
-                    "user_show"
-                ]
-            ]
+            'json',
+            $context
         );
+
+        return new Response($data, 200);
     }
 
     /**
@@ -235,8 +234,10 @@ class UserController extends AbstractApiController
      * @param Request $request
      * @param User $user
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=200,
      *     description="Delete an user",
@@ -250,9 +251,8 @@ class UserController extends AbstractApiController
      *     type="integer",
      *     description="user id"
      * )
-     * @throws InvalidArgumentException
      */
-    public function deleteAction(Request $request, User $user, CacheInterface $cache): Response
+    public function deleteAction(Request $request, User $user, CacheInterface $cache, SerializerInterface $serializer): Response
     {
         if ($user->getCustomer()->getId() !== $this->getUser()->getCustomer()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
@@ -265,9 +265,11 @@ class UserController extends AbstractApiController
         $cache->delete("users_list_" . $user->getCustomer()->getId());
         $cache->delete("user_" . $user->getId());
 
-        return $this->json(
+        $data = $serializer->serialize(
             ['success' => true],
-            200
+            'json'
         );
+
+        return new Response($data, 200);
     }
 }

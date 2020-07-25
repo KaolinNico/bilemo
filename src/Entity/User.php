@@ -4,14 +4,62 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Hateoas\Configuration\Annotation as Hateoas;
 
 /**
  * @ORM\Entity(repositoryClass=UserRepository::class)
  * @UniqueEntity("username")
+ * @Hateoas\Relation(
+ *      "self",
+ *      href = @Hateoas\Route(
+ *          "user_show",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute=true,
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ * )
+ * @Hateoas\Relation(
+ *      "list",
+ *      href = @Hateoas\Route(
+ *          "users_list",
+ *          absolute=true,
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ * )
+ * @Hateoas\Relation(
+ *      "create_user",
+ *      href = @Hateoas\Route(
+ *          "user_new",
+ *          absolute=true,
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ * )
+ * @Hateoas\Relation(
+ *      "edit_user",
+ *      href = @Hateoas\Route(
+ *          "user_edit",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute=true,
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ * )
+ * @Hateoas\Relation(
+ *      "delete_user",
+ *      href = @Hateoas\Route(
+ *          "user_delete",
+ *          parameters = { "id" = "expr(object.getId())" },
+ *          absolute=true,
+ *      ),
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ * )
+ * @Hateoas\Relation(
+ *     "customer",
+ *     embedded = @Hateoas\Embedded("expr(object.getCustomer())")
+ * )
  */
 class User implements UserInterface
 {

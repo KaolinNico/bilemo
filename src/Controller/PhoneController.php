@@ -8,6 +8,7 @@ use App\Exception\BadJsonException;
 use App\Form\PhoneType;
 use App\Repository\PhoneRepository;
 use DateInterval;
+use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Psr\Cache\InvalidArgumentException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -30,8 +31,10 @@ class PhoneController extends AbstractApiController
      * @Route("/", name="phones_list", methods={"GET"})
      * @param PhoneRepository $phoneRepository
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=200,
      *     description="Return list of all phones",
@@ -40,16 +43,18 @@ class PhoneController extends AbstractApiController
      *         @SWG\Items(ref=@Model(type=Phone::class))
      *     )
      * )
-     * @throws InvalidArgumentException
      */
-    public function indexAction(PhoneRepository $phoneRepository, CacheInterface $cache): Response
+    public function indexAction(PhoneRepository $phoneRepository, CacheInterface $cache, SerializerInterface $serializer): Response
     {
-        return $cache->get('phones', function (ItemInterface $item) use ($phoneRepository) {
+        return $cache->get('phones', function (ItemInterface $item) use ($phoneRepository, $serializer) {
             $item->expiresAfter(DateInterval::createFromDateString("1 hour"));
-            return $this->json(
+
+            $data = $serializer->serialize(
                 $phoneRepository->findAll(),
-                200
+                'json'
             );
+
+            return new Response($data, 200);
         });
     }
 
@@ -57,8 +62,10 @@ class PhoneController extends AbstractApiController
      * @Route("/{id}", name="phone_show", methods={"GET"})
      * @param Phone $phone
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=200,
      *     description="Return details for a phone",
@@ -74,15 +81,18 @@ class PhoneController extends AbstractApiController
      *     description="phone id"
      * )
      */
-    public function showAction(Phone $phone, CacheInterface $cache): Response
+    public function showAction(Phone $phone, CacheInterface $cache, SerializerInterface $serializer): Response
     {
         $key = "phone_" . $phone->getId();
-        return $cache->get($key, function (ItemInterface $item) use ($phone) {
+        return $cache->get($key, function (ItemInterface $item) use ($phone, $serializer) {
             $item->expiresAfter(DateInterval::createFromDateString("1 hour"));
-            return $this->json(
+
+            $data = $serializer->serialize(
                 $phone,
-                200
+                'json'
             );
+
+            return new Response($data, 200);
         });
     }
 
@@ -91,6 +101,7 @@ class PhoneController extends AbstractApiController
      * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
      * @throws BadFormException
@@ -105,7 +116,7 @@ class PhoneController extends AbstractApiController
      *     )
      * )
      */
-    public function newAction(Request $request, CacheInterface $cache): Response
+    public function newAction(Request $request, CacheInterface $cache, SerializerInterface $serializer): Response
     {
         $phone = new Phone();
         $form = $this->createForm(PhoneType::class, $phone);
@@ -128,10 +139,12 @@ class PhoneController extends AbstractApiController
 
         $cache->delete("phones");
 
-        return $this->json(
+        $data = $serializer->serialize(
             $phone,
-            201
+            'json'
         );
+
+        return new Response($data, 201);
     }
 
     /**
@@ -140,6 +153,7 @@ class PhoneController extends AbstractApiController
      * @param Request $request
      * @param Phone $phone
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
      * @throws BadFormException
@@ -160,7 +174,7 @@ class PhoneController extends AbstractApiController
      *     description="phone id"
      * )
      */
-    public function editAction(Request $request, Phone $phone, CacheInterface $cache): Response
+    public function editAction(Request $request, Phone $phone, CacheInterface $cache, SerializerInterface $serializer): Response
     {
         $form = $this->createForm(PhoneType::class, $phone);
 
@@ -183,10 +197,12 @@ class PhoneController extends AbstractApiController
         $entityManager->persist($phone);
         $entityManager->flush();
 
-        return $this->json(
+        $data = $serializer->serialize(
             $phone,
-            200
+            'json'
         );
+
+        return new Response($data, 200);
     }
 
     /**
@@ -195,8 +211,10 @@ class PhoneController extends AbstractApiController
      * @param Request $request
      * @param Phone $phone
      * @param CacheInterface $cache
+     * @param SerializerInterface $serializer
      * @return Response
      *
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=200,
      *     description="Phone deleted (Administrator only)",
@@ -210,9 +228,8 @@ class PhoneController extends AbstractApiController
      *     type="integer",
      *     description="phone id"
      * )
-     * @throws InvalidArgumentException
      */
-    public function deleteAction(Request $request, Phone $phone, CacheInterface $cache): Response
+    public function deleteAction(Request $request, Phone $phone, CacheInterface $cache, SerializerInterface $serializer): Response
     {
         $cache->delete("phones");
         $cache->delete("phone_" . $phone->getId());
@@ -221,10 +238,11 @@ class PhoneController extends AbstractApiController
         $entityManager->remove($phone);
         $entityManager->flush();
 
-
-        return $this->json(
+        $data = $serializer->serialize(
             ['success' => true],
-            200
+            'json'
         );
+
+        return new Response($data, 200);
     }
 }
