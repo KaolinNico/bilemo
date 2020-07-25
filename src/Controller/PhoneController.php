@@ -7,13 +7,17 @@ use App\Exception\BadFormException;
 use App\Exception\BadJsonException;
 use App\Form\PhoneType;
 use App\Repository\PhoneRepository;
+use DateInterval;
 use Nelmio\ApiDocBundle\Annotation\Security;
+use Psr\Cache\InvalidArgumentException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Swagger\Annotations as SWG;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @Route("/api/v1/phones")
@@ -25,6 +29,7 @@ class PhoneController extends AbstractApiController
     /**
      * @Route("/", name="phones_list", methods={"GET"})
      * @param PhoneRepository $phoneRepository
+     * @param CacheInterface $cache
      * @return Response
      *
      * @SWG\Response(
@@ -35,18 +40,23 @@ class PhoneController extends AbstractApiController
      *         @SWG\Items(ref=@Model(type=Phone::class))
      *     )
      * )
+     * @throws InvalidArgumentException
      */
-    public function indexAction(PhoneRepository $phoneRepository) :Response
+    public function indexAction(PhoneRepository $phoneRepository, CacheInterface $cache): Response
     {
-        return $this->json(
-            $phoneRepository->findAll(),
-            200
-        );
+        return $cache->get('phones', function (ItemInterface $item) use ($phoneRepository) {
+            $item->expiresAfter(DateInterval::createFromDateString("1 hour"));
+            return $this->json(
+                $phoneRepository->findAll(),
+                200
+            );
+        });
     }
 
     /**
      * @Route("/{id}", name="phone_show", methods={"GET"})
      * @param Phone $phone
+     * @param CacheInterface $cache
      * @return Response
      *
      * @SWG\Response(
@@ -64,20 +74,28 @@ class PhoneController extends AbstractApiController
      *     description="phone id"
      * )
      */
-    public function showAction(Phone $phone) :Response
+    public function showAction(Phone $phone, CacheInterface $cache): Response
     {
-        return $this->json(
-            $phone,
-            200
-        );
+        $key = "phone_" . $phone->getId();
+        return $cache->get($key, function (ItemInterface $item) use ($phone) {
+            $item->expiresAfter(DateInterval::createFromDateString("1 hour"));
+            return $this->json(
+                $phone,
+                200
+            );
+        });
     }
 
     /**
      * @Route("/", name="phone_new", methods={"POST"})
      * @IsGranted("ROLE_ADMIN")
      * @param Request $request
+     * @param CacheInterface $cache
      * @return Response
      *
+     * @throws BadFormException
+     * @throws BadJsonException
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=201,
      *     description="Phone created (Administrator only)",
@@ -86,10 +104,8 @@ class PhoneController extends AbstractApiController
      *         @SWG\Items(ref=@Model(type=Phone::class))
      *     )
      * )
-     * @throws BadFormException
-     * @throws BadJsonException
      */
-    public function newAction(Request $request) :Response
+    public function newAction(Request $request, CacheInterface $cache): Response
     {
         $phone = new Phone();
         $form = $this->createForm(PhoneType::class, $phone);
@@ -110,6 +126,8 @@ class PhoneController extends AbstractApiController
         $entityManager->persist($phone);
         $entityManager->flush();
 
+        $cache->delete("phones");
+
         return $this->json(
             $phone,
             201
@@ -121,8 +139,12 @@ class PhoneController extends AbstractApiController
      * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @param Phone $phone
+     * @param CacheInterface $cache
      * @return Response
      *
+     * @throws BadFormException
+     * @throws BadJsonException
+     * @throws InvalidArgumentException
      * @SWG\Response(
      *     response=200,
      *     description="Phone edited (Administrator only)",
@@ -137,10 +159,8 @@ class PhoneController extends AbstractApiController
      *     type="integer",
      *     description="phone id"
      * )
-     * @throws BadFormException
-     * @throws BadJsonException
      */
-    public function editAction(Request $request, Phone $phone) :Response
+    public function editAction(Request $request, Phone $phone, CacheInterface $cache): Response
     {
         $form = $this->createForm(PhoneType::class, $phone);
 
@@ -155,6 +175,9 @@ class PhoneController extends AbstractApiController
         if (!($form->isSubmitted() && $form->isValid())) {
             throw new BadFormException($form);
         }
+
+        $cache->delete("phones");
+        $cache->delete("phone_" . $phone->getId());
 
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($phone);
@@ -171,6 +194,7 @@ class PhoneController extends AbstractApiController
      * @IsGranted("ROLE_ADMIN")
      * @param Request $request
      * @param Phone $phone
+     * @param CacheInterface $cache
      * @return Response
      *
      * @SWG\Response(
@@ -186,12 +210,17 @@ class PhoneController extends AbstractApiController
      *     type="integer",
      *     description="phone id"
      * )
+     * @throws InvalidArgumentException
      */
-    public function deleteAction(Request $request, Phone $phone) :Response
+    public function deleteAction(Request $request, Phone $phone, CacheInterface $cache): Response
     {
+        $cache->delete("phones");
+        $cache->delete("phone_" . $phone->getId());
+
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->remove($phone);
         $entityManager->flush();
+
 
         return $this->json(
             ['success' => true],
