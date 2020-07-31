@@ -147,9 +147,7 @@ class UserController extends AbstractController
             throw new BadFormException($form);
         }
 
-        $user->setPassword($passwordEncoder->encodePassword($user, $user->getPlainPassword()));
         $user->setCustomer($this->getUser());
-        $user->setRoles(['ROLE_USER']);
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($user);
         $entityManager->flush();
