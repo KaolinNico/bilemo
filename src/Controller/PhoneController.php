@@ -14,6 +14,7 @@ use Psr\Cache\InvalidArgumentException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Swagger\Annotations as SWG;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -25,7 +26,7 @@ use Symfony\Contracts\Cache\ItemInterface;
  * @SWG\Tag(name="Phones")
  * @Security(name="Bearer")
  */
-class PhoneController extends AbstractApiController
+class PhoneController extends AbstractController
 {
     /**
      * @Route("/", name="phones_list", methods={"GET"})
