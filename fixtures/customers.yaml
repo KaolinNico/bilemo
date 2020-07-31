@@ -1,0 +1,12 @@
+parameters:
+    hash: $2y$10$hLCe35NdVzu7Pzvw5yB0oOQVyQEx39H9Jshk.k9t.JzCXOY1N9Z8.
+
+App\Entity\Customer:
+    customer_{1..3}:
+        name: "<company()>"
+        address: "<streetAddress()>"
+        zipcode: "<postcode()>"
+        city: "<city()>"
+        username: "company_<current()>"
+        roles: "['ROLE_USER']"
+        password: "<{hash}>"
