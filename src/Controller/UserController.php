@@ -15,6 +15,7 @@ use Nelmio\ApiDocBundle\Annotation\Security;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Psr\Cache\InvalidArgumentException;
 use Swagger\Annotations as SWG;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -27,7 +28,7 @@ use Symfony\Contracts\Cache\ItemInterface;
  * @SWG\Tag(name="Users")
  * @Security(name="Bearer")
  */
-class UserController extends AbstractApiController
+class UserController extends AbstractController
 {
     /**
      * @Route("/", name="users_list", methods={"GET"})
