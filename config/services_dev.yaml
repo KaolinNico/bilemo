@@ -29,6 +29,7 @@ services:
     App\Listener\Kernel\ExceptionListener:
         arguments:
             $normalizers: !tagged { tag: 'app.normalizer' }
+            $exceptionDataCollector: '@data_collector.exception'
         tags:
             - { name: kernel.event_listener, event: kernel.exception}
 
