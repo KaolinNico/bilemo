@@ -25,7 +25,7 @@ class ExceptionListener
      */
     private $logger;
 
-    public function __construct(RewindableGenerator $normalizers, ExceptionDataCollector $exceptionDataCollector, LoggerInterface $logger)
+    public function __construct(RewindableGenerator $normalizers, LoggerInterface $logger, ExceptionDataCollector $exceptionDataCollector = null)
     {
         $this->exceptionDataCollector = $exceptionDataCollector;
         $this->normalizers = $normalizers;
