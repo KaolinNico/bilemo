@@ -238,11 +238,8 @@ class UserController extends AbstractController
      *
      * @throws InvalidArgumentException
      * @SWG\Response(
-     *     response=200,
+     *     response=204,
      *     description="Delete an user",
-     *     @SWG\Schema(
-     *         @SWG\Property(property="success", type="boolean", description="return success"),
-     *     )
      * ),
      * @SWG\Parameter(
      *     in="path",
