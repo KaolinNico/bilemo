@@ -239,11 +239,6 @@ class PhoneController extends AbstractController
         $entityManager->remove($phone);
         $entityManager->flush();
 
-        $data = $serializer->serialize(
-            ['success' => true],
-            'json'
-        );
-
-        return new JsonResponse($data, 200, [], true);
+        return new JsonResponse(null, 204);
     }
 }
