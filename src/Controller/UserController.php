@@ -16,8 +16,8 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use Psr\Cache\InvalidArgumentException;
 use Swagger\Annotations as SWG;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -35,7 +35,7 @@ class UserController extends AbstractController
      * @param UserRepository $userRepository
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws InvalidArgumentException
      * @SWG\Response(
@@ -47,7 +47,7 @@ class UserController extends AbstractController
      *     )
      * )
      */
-    public function indexAction(UserRepository $userRepository, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function indexAction(UserRepository $userRepository, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         $key = "users_list_" . $this->getUser()->getId();
         return $cache->get($key, function (ItemInterface $item) use ($userRepository, $serializer) {
@@ -60,7 +60,7 @@ class UserController extends AbstractController
                     $context
             );
 
-            return new Response($data, 200);
+            return new JsonResponse($data, 200, [], true);
         });
 
     }
@@ -70,7 +70,7 @@ class UserController extends AbstractController
      * @param User $user
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws InvalidArgumentException
      * @SWG\Response(
@@ -88,7 +88,7 @@ class UserController extends AbstractController
      *     description="user id"
      * )
      */
-    public function showAction(User $user, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function showAction(User $user, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         $key = "user_" . $user->getId();
         return $cache->get($key, function (ItemInterface $item) use ($user, $serializer) {
@@ -105,7 +105,7 @@ class UserController extends AbstractController
                 $context
             );
 
-            return new Response($data, 200);
+            return new JsonResponse($data, 200, [], true);
         });
 
     }
@@ -116,7 +116,7 @@ class UserController extends AbstractController
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws BadFormException
      * @throws BadJsonException
@@ -130,7 +130,7 @@ class UserController extends AbstractController
      *     )
      * )
      */
-    public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function newAction(Request $request, UserPasswordEncoderInterface $passwordEncoder, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         $user = new User();
         $form = $this->createForm(UserType::class, $user);
@@ -161,7 +161,7 @@ class UserController extends AbstractController
             'json',
             $context
         );
-        return new Response($data, 201);
+        return new JsonResponse($data, 201, [], true);
     }
 
     /**
@@ -170,7 +170,7 @@ class UserController extends AbstractController
      * @param User $user
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws BadFormException
      * @throws BadJsonException
@@ -190,7 +190,7 @@ class UserController extends AbstractController
      *     description="user id"
      * )
      */
-    public function editAction(Request $request, User $user, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function editAction(Request $request, User $user, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         if ($user->getCustomer()->getId() !== $this->getUser()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
@@ -225,7 +225,7 @@ class UserController extends AbstractController
             $context
         );
 
-        return new Response($data, 200);
+        return new JsonResponse($data, 200, [], true);
     }
 
     /**
@@ -234,7 +234,7 @@ class UserController extends AbstractController
      * @param User $user
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws InvalidArgumentException
      * @SWG\Response(
@@ -251,7 +251,7 @@ class UserController extends AbstractController
      *     description="user id"
      * )
      */
-    public function deleteAction(Request $request, User $user, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function deleteAction(Request $request, User $user, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         if ($user->getCustomer()->getId() !== $this->getUser()->getId()) {
             return $this->json(['message' => '400 - Bad Request'], 400);
@@ -269,6 +269,6 @@ class UserController extends AbstractController
             'json'
         );
 
-        return new Response($data, 200);
+        return new JsonResponse($data, 200, [], true);
     }
 }
