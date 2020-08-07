@@ -15,8 +15,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Nelmio\ApiDocBundle\Annotation\Model;
 use Swagger\Annotations as SWG;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -33,7 +33,7 @@ class PhoneController extends AbstractController
      * @param PhoneRepository $phoneRepository
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws InvalidArgumentException
      * @SWG\Response(
@@ -45,7 +45,7 @@ class PhoneController extends AbstractController
      *     )
      * )
      */
-    public function indexAction(PhoneRepository $phoneRepository, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function indexAction(PhoneRepository $phoneRepository, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         return $cache->get('phones', function (ItemInterface $item) use ($phoneRepository, $serializer) {
             $item->expiresAfter(DateInterval::createFromDateString("1 hour"));
@@ -55,7 +55,7 @@ class PhoneController extends AbstractController
                 'json'
             );
 
-            return new Response($data, 200);
+            return new JsonResponse($data, 200);
         });
     }
 
@@ -64,7 +64,7 @@ class PhoneController extends AbstractController
      * @param Phone $phone
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws InvalidArgumentException
      * @SWG\Response(
@@ -82,7 +82,7 @@ class PhoneController extends AbstractController
      *     description="phone id"
      * )
      */
-    public function showAction(Phone $phone, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function showAction(Phone $phone, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         $key = "phone_" . $phone->getId();
         return $cache->get($key, function (ItemInterface $item) use ($phone, $serializer) {
@@ -93,7 +93,7 @@ class PhoneController extends AbstractController
                 'json'
             );
 
-            return new Response($data, 200);
+            return new JsonResponse($data, 200, [], true);
         });
     }
 
@@ -103,7 +103,7 @@ class PhoneController extends AbstractController
      * @param Request $request
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws BadFormException
      * @throws BadJsonException
@@ -117,7 +117,7 @@ class PhoneController extends AbstractController
      *     )
      * )
      */
-    public function newAction(Request $request, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function newAction(Request $request, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         $phone = new Phone();
         $form = $this->createForm(PhoneType::class, $phone);
@@ -145,7 +145,7 @@ class PhoneController extends AbstractController
             'json'
         );
 
-        return new Response($data, 201);
+        return new JsonResponse($data, 201, [], true);
     }
 
     /**
@@ -155,7 +155,7 @@ class PhoneController extends AbstractController
      * @param Phone $phone
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws BadFormException
      * @throws BadJsonException
@@ -175,7 +175,7 @@ class PhoneController extends AbstractController
      *     description="phone id"
      * )
      */
-    public function editAction(Request $request, Phone $phone, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function editAction(Request $request, Phone $phone, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         $form = $this->createForm(PhoneType::class, $phone);
 
@@ -203,7 +203,7 @@ class PhoneController extends AbstractController
             'json'
         );
 
-        return new Response($data, 200);
+        return new JsonResponse($data, 200, [], true);
     }
 
     /**
@@ -213,7 +213,7 @@ class PhoneController extends AbstractController
      * @param Phone $phone
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
-     * @return Response
+     * @return JsonResponse
      *
      * @throws InvalidArgumentException
      * @SWG\Response(
@@ -230,7 +230,7 @@ class PhoneController extends AbstractController
      *     description="phone id"
      * )
      */
-    public function deleteAction(Request $request, Phone $phone, CacheInterface $cache, SerializerInterface $serializer): Response
+    public function deleteAction(Request $request, Phone $phone, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
         $cache->delete("phones");
         $cache->delete("phone_" . $phone->getId());
@@ -244,6 +244,6 @@ class PhoneController extends AbstractController
             'json'
         );
 
-        return new Response($data, 200);
+        return new JsonResponse($data, 200, [], true);
     }
 }
