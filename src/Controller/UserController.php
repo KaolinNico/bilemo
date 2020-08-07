@@ -264,11 +264,6 @@ class UserController extends AbstractController
         $cache->delete("users_list_" . $user->getCustomer()->getId());
         $cache->delete("user_" . $user->getId());
 
-        $data = $serializer->serialize(
-            ['success' => true],
-            'json'
-        );
-
-        return new JsonResponse($data, 200, [], true);
+        return new JsonResponse(null, 204);
     }
 }
