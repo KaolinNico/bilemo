@@ -1,5 +1,5 @@
 App\Entity\Phone:
-    phone_{1..10}:
+    phone_{1..40}:
         reference: "SAMSUNG_GAL_S10"
         brand : "SAMSUNG"
         model: "GALAXY S10"
