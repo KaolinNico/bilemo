@@ -61,7 +61,7 @@ class PhoneController extends AbstractController
             $max_page = count($phones) / $limit;
 
             $collection = new CollectionRepresentation(
-                array_slice($phoneRepository->findAll(), $offset, $limit)
+                array_slice($phones, $offset, $limit)
             );
             $pagination = new PaginatedRepresentation(
                 $collection,

@@ -1,5 +1,5 @@
 App\Entity\User:
-    user_{1..10}:
+    user_{1..30}:
         email: "<email()>"
         customer: "@customer_*"
         firstname: "<firstname()>"
