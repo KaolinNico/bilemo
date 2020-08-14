@@ -8,6 +8,8 @@ use App\Exception\BadJsonException;
 use App\Form\PhoneType;
 use App\Repository\PhoneRepository;
 use DateInterval;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Security;
 use Psr\Cache\InvalidArgumentException;
@@ -30,6 +32,7 @@ class PhoneController extends AbstractController
 {
     /**
      * @Route("/", name="phones_list", methods={"GET"})
+     * @param Request $request
      * @param PhoneRepository $phoneRepository
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
@@ -45,13 +48,37 @@ class PhoneController extends AbstractController
      *     )
      * )
      */
-    public function indexAction(PhoneRepository $phoneRepository, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
+    public function indexAction(Request $request, PhoneRepository $phoneRepository, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
-        return $cache->get('phones', function (ItemInterface $item) use ($phoneRepository, $serializer) {
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 10);
+
+        return $cache->get('phones_' . $page . '_' . $limit, function (ItemInterface $item) use ($phoneRepository, $serializer, $request, $page, $limit) {
             $item->expiresAfter(DateInterval::createFromDateString("1 hour"));
 
+            $phones = $phoneRepository->findAll();
+            $offset = ($page - 1) * $limit;
+            $max_page = count($phones) / $limit;
+
+            $collection = new CollectionRepresentation(
+                array_slice($phones, $offset, $limit)
+            );
+            $pagination = new PaginatedRepresentation(
+                $collection,
+                "phones_list",
+                [],
+                $page,
+                $limit,
+                $max_page,
+                'page',
+                'limit',
+                true,
+                count($phones)
+            );
+
+
             $data = $serializer->serialize(
-                $phoneRepository->findAll(),
+                $pagination,
                 'json'
             );
 

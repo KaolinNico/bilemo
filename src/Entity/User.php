@@ -17,7 +17,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute=true,
  *      ),
- *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show"})
  * )
  * @Hateoas\Relation(
  *      "list",
@@ -25,7 +25,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          "users_list",
  *          absolute=true,
  *      ),
- *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show"})
  * )
  * @Hateoas\Relation(
  *      "create_user",
@@ -33,7 +33,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          "user_new",
  *          absolute=true,
  *      ),
- *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show"})
  * )
  * @Hateoas\Relation(
  *      "edit_user",
@@ -42,7 +42,7 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute=true,
  *      ),
- *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show"})
  * )
  * @Hateoas\Relation(
  *      "delete_user",
@@ -51,11 +51,12 @@ use Hateoas\Configuration\Annotation as Hateoas;
  *          parameters = { "id" = "expr(object.getId())" },
  *          absolute=true,
  *      ),
- *     exclusion = @Hateoas\Exclusion(groups={"user_show", "users_list"})
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show"})
  * )
  * @Hateoas\Relation(
  *     "customer",
- *     embedded = @Hateoas\Embedded("expr(object.getCustomer())")
+ *     embedded = @Hateoas\Embedded("expr(object.getCustomer())"),
+ *     exclusion = @Hateoas\Exclusion(groups={"user_show"})
  * )
  */
 class User
@@ -78,7 +79,6 @@ class User
 
     /**
      * @ORM\ManyToOne(targetEntity=Customer::class, inversedBy="users")
-     * @Groups({"user_show"})
      */
     private $customer;
 

@@ -9,6 +9,8 @@ use App\Exception\BadJsonException;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use DateInterval;
+use Hateoas\Representation\CollectionRepresentation;
+use Hateoas\Representation\PaginatedRepresentation;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 use Nelmio\ApiDocBundle\Annotation\Security;
@@ -32,6 +34,7 @@ class UserController extends AbstractController
 {
     /**
      * @Route("/", name="users_list", methods={"GET"})
+     * @param Request $request
      * @param UserRepository $userRepository
      * @param CacheInterface $cache
      * @param SerializerInterface $serializer
@@ -47,17 +50,45 @@ class UserController extends AbstractController
      *     )
      * )
      */
-    public function indexAction(UserRepository $userRepository, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
+    public function indexAction(Request $request, UserRepository $userRepository, CacheInterface $cache, SerializerInterface $serializer): JsonResponse
     {
-        $key = "users_list_" . $this->getUser()->getId();
-        return $cache->get($key, function (ItemInterface $item) use ($userRepository, $serializer) {
+        $page = $request->get('page', 1);
+        $limit = $request->get('limit', 10);
+
+        $key = 'users_list_' . $page . '_' . $limit . $this->getUser()->getId();
+        return $cache->get($key, function (ItemInterface $item) use ($userRepository, $serializer, $request, $page, $limit) {
             $item->expiresAfter(DateInterval::createFromDateString('1 hour'));
-            $context = SerializationContext::create()->setGroups(['users_list']);
+            $context = SerializationContext::create()->setGroups([
+                'Default',
+                'users_list'
+            ]);
+
+            $users = $userRepository->findByCustomer($this->getUser()->getId());
+            $offset = ($page - 1) * $limit;
+            $max_page = count($users) / $limit;
+
+            $collection = new CollectionRepresentation(
+                array_slice($users, $offset, $limit)
+            );
+
+
+            $pagination = new PaginatedRepresentation(
+                $collection,
+                "users_list",
+                [],
+                $page,
+                $limit,
+                $max_page,
+                'page',
+                'limit',
+                true,
+                count($users)
+            );
 
             $data = $serializer->serialize(
-                $userRepository->findByCustomer($this->getUser()->getId()),
-                    'json',
-                    $context
+                $pagination,
+                'json',
+                $context
             );
 
             return new JsonResponse($data, 200, [], true);
