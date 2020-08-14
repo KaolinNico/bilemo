@@ -55,7 +55,7 @@ class PhoneController extends AbstractController
                 'json'
             );
 
-            return new JsonResponse($data, 200);
+            return new JsonResponse($data, 200, [], true);
         });
     }
 
